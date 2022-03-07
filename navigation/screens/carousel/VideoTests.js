@@ -1,0 +1,719 @@
+// Inspiration: https://dribbble.com/shots/14139308-Simple-Scroll-Animation
+// Illustrations by: SAMji https://dribbble.com/SAMji_illustrator
+
+import * as React from 'react';
+import { StatusBar,
+    FlatList,
+    Image,
+    Animated,
+    Text,
+    View, 
+    Dimensions,
+    StyleSheet, 
+    TouchableOpacity,
+    Button } from 'react-native';
+
+// Video 
+import Video from 'react-native-video';
+
+// Icons 
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+
+// SOUNDS::
+// FAIL SOUND
+import Sound from 'react-native-sound';
+Sound.setCategory('Playback');
+var FAIL_SOUND = new Sound(require('../../../android/app/src/main/res/raw/fail.mp3'), error => {
+    if (error) {
+      console.log('failed to load the sound', error);
+      return;
+    }
+});
+
+// WIN SOUND
+var WIN_SOUND = new Sound(require('../../../android/app/src/main/res/raw/win.mp3'), error => {
+    if (error) {
+      console.log('failed to load the sound', error);
+      return;
+    }
+});
+
+// VOLUME SETTINGS
+FAIL_SOUND.setVolume(0.6);
+WIN_SOUND.setVolume(0.6);
+// ...
+
+const { width, height } = Dimensions.get('screen');
+const window = Dimensions.get('window');
+
+const imageW = width * 0.9; // Длина блока ответов (4 штук)
+const imageH = imageW * 0.22; // Высота блока ответов (4 штук)
+
+const videoWidth = width;
+const videoHeight = videoWidth * 0.55;
+
+// Информация которую приложение получает
+// от сервера
+// Каждный блок - один видеотест
+const data = [{ 
+    image: 'https://paksol.ru/gramma/Forest.mp4',
+    poster: 'https://paksol.ru/gramma/Forest.png',
+    tip: "Там можно спросить - что смешного?",
+    serverChoice1: {
+        text: "What's so funny?",
+        correct: true,
+        choiceIndex: 0,
+    },
+    serverChoice2: {
+        text: "What funny?",
+        correct: false,
+        choiceIndex: 1,
+    },
+    serverChoice3: {
+        text: "So so funny?",
+        correct: false,
+        choiceIndex: 2,
+    },
+    serverChoice4: {
+        text: "What no funny?",
+        correct: false,
+        choiceIndex: 3,
+    },
+},
+{ 
+    image: 'https://paksol.ru/gramma/wallstreet.mp4',
+    poster: 'https://paksol.ru/gramma/wolf.png',
+    tip: "Какой же отличный день!",
+    serverChoice1: {
+        text: "Wooh, what a day!",
+        correct: false,
+        choiceIndex: 0,
+    },
+    serverChoice2: {
+        text: "Wooh, what day!",
+        correct: false,
+        choiceIndex: 1,
+    },
+    serverChoice3: {
+        text: "Wooh, what a nice day!",
+        correct: true,
+        choiceIndex: 2,
+    },
+    serverChoice4: {
+        text: "Wow, what nice day!",
+        correct: false,
+        choiceIndex: 3,
+    },
+},
+{ 
+    image: 'https://paksol.ru/gramma/bruce.mp4',
+    poster: 'https://paksol.ru/gramma/bruceall.png',
+    tip: "Привет привет =)",
+    serverChoice1: {
+        text: "Ho ho ho hoo..",
+        correct: false,
+        choiceIndex: 0,
+    },
+    serverChoice2: {
+        text: "No no no no..",
+        correct: false,
+        choiceIndex: 1,
+    },
+    serverChoice3: {
+        text: "Hello..hello hello hello hello",
+        correct: true,
+        choiceIndex: 2,
+    },
+    serverChoice4: {
+        text: "Halo halo halo",
+        correct: false,
+        choiceIndex: 3,
+    },
+},
+{ 
+    image: 'http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
+    poster: 'https://www.w3schools.com/tags/img_girl.jpg',
+    tip: "Some tip",
+    serverChoice1: {
+        text: "What's so funny?",
+        correct: false,
+        choiceIndex: 0,
+    },
+    serverChoice2: {
+        text: "What's so funny?",
+        correct: false,
+        choiceIndex: 1,
+    },
+    serverChoice3: {
+        text: "What's so funny?",
+        correct: false,
+        choiceIndex: 2,
+    },
+    serverChoice4: {
+        text: "What's so funny?",
+        correct: true,
+        choiceIndex: 3,
+    },
+},
+];
+
+export default class VideoTests extends React.Component {
+    // Аним валю для Флет Листа
+    // не трогать
+    scrollX = new Animated.Value(0);
+
+    state = {
+        // Переменные для
+        // анимации тряски
+        // при неправильном ответе
+        shakeAnimation: new Animated.Value(0),
+        shakeAnimation2: new Animated.Value(0),
+        shakeAnimation3: new Animated.Value(0),
+        shakeAnimation4: new Animated.Value(0),
+        // Переменные для анимации 
+        // изменения цвета бекграунда
+        // на зеленый или красный в 
+        // зависимости от правильности
+        // ответа
+        backAnim: new Animated.Value(0),
+        backAnim2: new Animated.Value(0),
+        backAnim3: new Animated.Value(0),
+        backAnim4: new Animated.Value(0),
+        // Переменная для
+        // прогрес бара
+        progressVal: 0,
+    };
+
+    incrementProgressVal = () => {
+        if(this.state.progressVal < data.length) {
+            this.setState({
+                progressVal: this.state.progressVal + 1
+            });
+        }
+    };
+
+    // Вызывается когда юзер
+    // нажал на верный ответ
+    winCheck = (choice, index) => {
+        // Добавить единицу в прогрес бар
+        this.incrementProgressVal();
+        // Посмотреть какой номер у ответа
+        // и в зависимости от номера изменить
+        // внутренний стейт
+        switch(choice.choiceIndex) {
+            case 0:
+                // Анимация бекграунда тачбл
+                Animated.sequence([
+                    Animated.timing(this.state.backAnim, {
+                        duration: 100,
+                        toValue: 1,
+                        useNativeDriver: false
+                    }),
+                    Animated.timing(this.state.backAnim, {
+                        delay: 400,
+                        duration: 100,
+                        toValue: 0,
+                        useNativeDriver: false
+                    })
+                ]).start();
+                // ...
+                break;
+            case 1:
+                // Анимация бекграунда тачбл
+                Animated.sequence([
+                    Animated.timing(this.state.backAnim2, {
+                        duration: 100,
+                        toValue: 1,
+                        useNativeDriver: false
+                    }),
+                    Animated.timing(this.state.backAnim2, {
+                        delay: 400,
+                        duration: 100,
+                        toValue: 0,
+                        useNativeDriver: false
+                    })
+                ]).start();
+                // ...
+                break;
+            case 2:
+                // Анимация бекграунда тачбл
+                Animated.sequence([
+                    Animated.timing(this.state.backAnim3, {
+                        duration: 100,
+                        toValue: 1,
+                        useNativeDriver: false
+                    }),
+                    Animated.timing(this.state.backAnim3, {
+                        delay: 400,
+                        duration: 100,
+                        toValue: 0,
+                        useNativeDriver: false
+                    })
+                ]).start();
+                // ...
+                break;
+            case 3:
+                // Анимация бекграунда тачбл
+                Animated.sequence([
+                    Animated.timing(this.state.backAnim4, {
+                        duration: 100,
+                        toValue: 1,
+                        useNativeDriver: false
+                    }),
+                    Animated.timing(this.state.backAnim4, {
+                        delay: 400,
+                        duration: 100,
+                        toValue: 0,
+                        useNativeDriver: false
+                    })
+                ]).start();
+                // ...
+                break;
+            default:
+                break;
+        }
+
+        // Звук правильного ответа
+        WIN_SOUND.play();
+
+        // Пролистнуть страницу 
+        // через полсекунды
+        setTimeout(() => {
+            this.flatListRef.scrollToIndex({animated: true, index: index + 1 });
+        }, 800);
+    }
+
+    loseCheck = (choice) => {
+        switch(choice.choiceIndex) {
+            case 0:
+                // Анимация тряски при
+                // неправильном ответе
+                Animated.parallel([
+                    Animated.sequence([
+                        Animated.timing(this.state.shakeAnimation, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation, { toValue: -1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation, { toValue: 0, duration: 70, useNativeDriver: true })
+                    ]),
+                    Animated.sequence([
+                        Animated.timing(this.state.backAnim, {
+                            duration: 100,
+                            toValue: 1,
+                            useNativeDriver: false
+                        }),
+                        Animated.timing(this.state.backAnim, {
+                            delay: 500,
+                            duration: 100,
+                            toValue: 0,
+                            useNativeDriver: false
+                        })
+                    ]),
+                ]).start();
+                // ...
+                break;
+            case 1:
+                // Анимация тряски при
+                // неправильном ответе
+                Animated.parallel([
+                    Animated.sequence([
+                        Animated.timing(this.state.shakeAnimation2, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation2, { toValue: -1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation2, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation2, { toValue: 0, duration: 70, useNativeDriver: true })
+                    ]),
+                    Animated.sequence([
+                        Animated.timing(this.state.backAnim2, {
+                            duration: 100,
+                            toValue: 1,
+                            useNativeDriver: false
+                        }),
+                        Animated.timing(this.state.backAnim2, {
+                            delay: 500,
+                            duration: 100,
+                            toValue: 0,
+                            useNativeDriver: false
+                        })
+                    ]),
+                ]).start();
+                // ...
+                break;
+            case 2:
+                // Анимация тряски при
+                // неправильном ответе
+                Animated.parallel([
+                    Animated.sequence([
+                        Animated.timing(this.state.shakeAnimation3, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation3, { toValue: -1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation3, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation3, { toValue: 0, duration: 70, useNativeDriver: true })
+                    ]),
+                    Animated.sequence([
+                        Animated.timing(this.state.backAnim3, {
+                            duration: 100,
+                            toValue: 1,
+                            useNativeDriver: false
+                        }),
+                        Animated.timing(this.state.backAnim3, {
+                            delay: 500,
+                            duration: 100,
+                            toValue: 0,
+                            useNativeDriver: false
+                        })
+                    ]),
+                ]).start();
+                // ...
+                break;
+            case 3:
+                // Анимация тряски при
+                // неправильном ответе
+                Animated.parallel([
+                    Animated.sequence([
+                        Animated.timing(this.state.shakeAnimation4, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation4, { toValue: -1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation4, { toValue: 1.5, duration: 70, useNativeDriver: true }),
+                        Animated.timing(this.state.shakeAnimation4, { toValue: 0, duration: 70, useNativeDriver: true })
+                    ]),
+                    Animated.sequence([
+                        Animated.timing(this.state.backAnim4, {
+                            duration: 100,
+                            toValue: 1,
+                            useNativeDriver: false
+                        }),
+                        Animated.timing(this.state.backAnim4, {
+                            delay: 500,
+                            duration: 100,
+                            toValue: 0,
+                            useNativeDriver: false
+                        })
+                    ]),
+                ]).start();
+                // ...
+                break;
+            default:
+                break;
+        }
+
+        // Звук неправильного ответа
+        FAIL_SOUND.play();
+    }
+
+    render() {
+        // Создаем компонент для анимации
+        // пространства тачбл для блока
+        // ответа
+        const AnimatedButton = Animated.createAnimatedComponent(TouchableOpacity);
+        // Константы анимации для 4-х
+        // блоков ответа
+        // бекграунд ЗЕЛЕНОГО цвета
+        const backgroundColor = this.state.backAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#7dee9e']
+        });
+        const backgroundColor2 = this.state.backAnim2.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#7dee9e']
+        });
+        const backgroundColor3 = this.state.backAnim3.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#7dee9e']
+        });
+        const backgroundColor4 = this.state.backAnim4.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#7dee9e']
+        });
+        // Константы анимации для 4-х
+        // блоков ответа
+        // бекграунд КРАСНОГО цвета
+        const backgroundColorRed = this.state.backAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#cd7180']
+        });
+        const backgroundColorRed2 = this.state.backAnim2.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#cd7180']
+        });
+        const backgroundColorRed3 = this.state.backAnim3.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#cd7180']
+        });
+        const backgroundColorRed4 = this.state.backAnim4.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['#777', '#cd7180']
+        });
+        // И для тряски
+        const shakingZ = this.state.shakeAnimation.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '1deg']
+        });
+        const shakingZ2 = this.state.shakeAnimation2.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '1deg']
+        });
+        const shakingZ3 = this.state.shakeAnimation3.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '1deg']
+        });
+        const shakingZ4 = this.state.shakeAnimation4.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '1deg']
+        });
+
+        return ( <>
+            <View style={[ styles.container, {
+                alignItems: 'center',
+            } ]}>
+                <StatusBar hidden />
+                <Progress step={this.state.progressVal} steps={data.length} height={8} />
+            </View>
+                <Animated.FlatList
+                    data={data}
+                    onScroll={Animated.event([
+                        {
+                            nativeEvent: {
+                                contentOffset: {
+                                    x: this.scrollX
+                                }
+                            } 
+                        }
+                      ],
+                      {useNativeDriver: false}
+                    )}
+                    keyExtractor={(_, index) => index.toString()}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    scrollEnabled={false}
+                    ref={(ref) => { this.flatListRef = ref; }}
+                    renderItem={({item, index}) => {
+                        return <>
+                            <View
+                                style={{
+                                    flex: 1,
+                                    backgroundColor: '#1d1920',
+                                }}
+                            >
+                                <View
+                                    style={{
+                                        flex: 3,
+                                        backgroundColor: '#000', // Black screen
+                                    }}
+                                >
+                                    <VideoComponent item={item} />
+                                </View>
+                                <View
+                                    style={{
+                                        flex: 1.3,
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                    }}
+                                    >
+                                    <Text
+                                        style={{
+                                            fontSize: 18,
+                                            color: '#c7c7c9', // Dim white
+                                        }}
+                                    >{item.tip}</Text>
+                                </View>
+                                <View
+                                    style={{
+                                        flex: 5,
+                                        marginBottom: 10,
+                                    }}
+                                >
+                                    <Animated.View style={[styles.choiceFieldContainer, {
+                                        transform: [{ rotateZ: shakingZ }],
+                                    }
+                                    ]}>
+                                        <AnimatedButton
+                                            activeOpacity={1} // Disable darken effect on click
+                                            onPress={
+                                                item.serverChoice1.correct ? () => 
+                                                {this.winCheck(item.serverChoice1, index)} : () =>
+                                                {this.loseCheck(item.serverChoice1)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice1.correct ? backgroundColor : backgroundColorRed }]}>
+                                            <Text style={styles.choiceField}>{item.serverChoice1.text}</Text>
+                                        </AnimatedButton>
+                                    </Animated.View>
+
+                                    <Animated.View style={[styles.choiceFieldContainer, {
+                                        transform: [{ rotateZ: shakingZ2 }],
+                                    }
+                                    ]}>
+                                        <AnimatedButton
+                                            activeOpacity={1} // Disable darken effect on click
+                                            onPress={
+                                                item.serverChoice2.correct ? () => 
+                                                {this.winCheck(item.serverChoice2, index)} : () =>
+                                                {this.loseCheck(item.serverChoice2)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice2.correct ? backgroundColor2 : backgroundColorRed2 }]}>
+                                            <Text style={styles.choiceField}>{item.serverChoice2.text}</Text>
+                                        </AnimatedButton>
+                                    </Animated.View>
+
+                                    <Animated.View style={[styles.choiceFieldContainer, {
+                                        transform: [{ rotateZ: shakingZ3 }],
+                                    }
+                                    ]}>
+                                        <AnimatedButton
+                                            activeOpacity={1} // Disable darken effect on click
+                                            onPress={
+                                                item.serverChoice3.correct ? () => 
+                                                {this.winCheck(item.serverChoice3, index)} : () =>
+                                                {this.loseCheck(item.serverChoice3)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice3.correct ? backgroundColor3 : backgroundColorRed3 }]}>
+                                            <Text style={styles.choiceField}>{item.serverChoice3.text}</Text>
+                                        </AnimatedButton>
+                                    </Animated.View>
+
+                                    <Animated.View style={[styles.choiceFieldContainer, {
+                                        transform: [{ rotateZ: shakingZ4 }],
+                                    }
+                                    ]}>
+                                        <AnimatedButton
+                                            activeOpacity={1} // Disable darken effect on click
+                                            onPress={
+                                                item.serverChoice4.correct ? () => 
+                                                {this.winCheck(item.serverChoice4, index)} : () =>
+                                                {this.loseCheck(item.serverChoice4)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice4.correct ? backgroundColor4 : backgroundColorRed4 }]}>
+                                            <Text style={styles.choiceField}>{item.serverChoice4.text}</Text>
+                                        </AnimatedButton>
+                                    </Animated.View>
+
+                                </View>
+                            </View>
+                        </>
+                    }}>
+                </Animated.FlatList>
+            </>
+        );
+    }
+};
+
+// Progress bar
+const Progress = ({step, steps, height}) => {
+    const [width, setWidth] = React.useState(0);
+    const animatedValue = React.useRef(new Animated.Value(-1000)).current;
+    const reactive = React.useRef(new Animated.Value(-1000)).current;
+
+    React.useEffect(() => {
+        Animated.timing(animatedValue, {
+            toValue: reactive,
+            duration: 300,
+            useNativeDriver: true
+        }).start();
+    }, []);
+
+    React.useEffect(() => {
+        reactive.setValue(-width + (width * step) / steps);
+    }, [step, width]);
+
+    return(
+        <>
+            <View
+            onLayout={(e) => {
+                const newWidth = e.nativeEvent.layout.width;
+                setWidth(newWidth);
+            }}
+            style={{
+                height,
+                backgroundColor: '#636169',
+                borderRadius: height,
+                overflow: 'hidden',
+                width: '80%',
+            }}>
+                <Animated.View style={{
+                    height,
+                    width: '100%',
+                    borderRadius: height,
+                    backgroundColor: '#ffde00',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    transform: [
+                        {
+                            translateX: animatedValue,
+                        }
+                    ],
+                }}/>
+            </View>
+        </>
+    );
+}
+
+// Video Component
+const VideoComponent = ({ item }) => {
+    const [videoPaused, setVideoPaused] = React.useState(true);
+    
+    return(
+        <>
+            <TouchableOpacity 
+                activeOpacity={1} // Disable darken effect on click
+                onPress={() => {
+                    setVideoPaused(!videoPaused);
+                  }}
+            >
+                <Video
+                    source={{ uri: item.image }}
+                    rate={1.0}
+                    volume={1.0}
+                    muted={false}
+                    paused={videoPaused ? true : false}
+                    resizeMode="cover" // contain 
+                    // shouldPlay // isLooping
+                    poster={item.poster}
+                    onEnd={() => setVideoPaused(true)}
+                    style={{ width: videoWidth,
+                            height: videoHeight,
+                        }}
+                />
+                <View style={{
+                    backgroundColor: '#ddddd5',
+                    width: 40,
+                    height: 40,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: width/2, // rounded circle
+                    position: 'absolute',
+                    top: '45%',
+                    left: '47%',
+                    display: videoPaused ? 'flex' : 'none',
+                }}>
+                    <Ionicons name="play" size={17} color="#111" /> 
+                </View>
+            </TouchableOpacity>
+        </>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 0.08,
+        justifyContent: 'center',
+        backgroundColor: '#1d1920',
+    },
+    choiceField: {
+        // backgroundColor: '#777',
+        width: imageW,
+        height: imageH,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        fontSize: 20,
+        color: '#fff',
+        borderRadius: 6,
+    },
+    choiceFieldContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    choiceTouchable: {
+        backgroundColor: '#777',
+        borderRadius: 6,
+    },
+    new: {
+        flex: 1,
+        backgroundColor: 'red'
+    }
+});
