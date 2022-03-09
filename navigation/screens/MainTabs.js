@@ -23,11 +23,16 @@ import VideoTests from './carousel/VideoTests';
 import { MyContext } from '../../MyContext';
 
 // Moti for animation
-import { MotiView } from 'moti';
-import 'react-native-reanimated';
+import { AnimatePresence, MotiView } from 'moti';
+import * as Rt from 'react-native-reanimated';
+import SectionList from 'react-native/Libraries/Lists/SectionList';
 
 // Width and Height of the screen
 const { widthDevice, heightDevice } = Dimensions.get('screen');
+
+// Colors 
+const OCEANBLUE = '#00b1fd';
+const GRAYBLUE = '#3f4b59';
 
 // Bottom navigator colors
 const MyTheme = {
@@ -75,89 +80,86 @@ function HomeTabs(){
     );
 }
 
-// Sliding down panel
-// With subcources
-const FadeInView = (props) => {
-    const heightAnim = React.useRef(new Animated.Value(0)).current
-    const opacityAnim = React.useRef(new Animated.Value(0)).current
-
-    React.useEffect(() => {
-        Animated.parallel([
-            Animated.timing(opacityAnim, {
-                delay: 25,
-                duration: 200,
-                toValue: 1,
-                useNativeDriver: false
-            }),
-            Animated.timing(heightAnim, {
-                duration: 100,
-                toValue: 300,
-                useNativeDriver: false
-            })
-        ]).start();
-    }, []);
-
-    return (
-        <Animated.View                 // Special animatable View
-            style={{
-                ...props.style,
-                height: heightAnim,         // Bind opacity to animated value
-                opacity: opacityAnim,
-            }}
-            >
-            {props.children}
-        </Animated.View>
-    );
-}
 
 // TESTING
 const DATA = [
     {
       id: "1",
       title: "First Item",
+      data: {
+          data1: 'data1',
+          data2: 'data2',
+          data3: 'data3',
+      }
     },
     {
       id: "2",
       title: "Second Item",
+      data: {
+        data1: 'data1',
+        data2: 'data2',
+        data3: 'data3',
+    }
     },
     {
       id: "3",
       title: "Third Item",
+      data: {
+        data1: 'data1',
+        data2: 'data2',
+        data3: 'data3',
+    }
     },
 ];
 
-const CourseItem = ({ item, onPress, object }) => {
-    const animVal = React.useRef(new Animated.Value(0)).current;
-
-    React.useEffect(() => {
-        Animated.loop(
-            Animated.timing(animVal, {
-            toValue: 150,
-            duration: 3000,
-            useNativeDriver: false
-            })
-        ).start()
-    }, []);
-
-    var dropDown = object ? 
-    <FadeInView style={{ 
-        width: widthDevice,
-        height: 300,
-        backgroundColor: '#3f4b59',
-        marginTop: 25,
+// Course item
+// Shining animation
+const ShineCircle = () => {
+    return (
+    <View style={{
+        width: 100,
+        height: 100,
+        position: 'absolute'
     }}>
-        <View style={styles.triangle}></View>
-    </FadeInView> : null;
+    {[...Array(3).keys()].map((index) => {
+        return (
+            <MotiView
+                from={{ opacity: .7, scale: 0.3 }}
+                animate={{ opacity: 0, scale: 2 }}
+                transition={{
+                    type: 'timing',
+                    duration: 3000,
+                    easing: Rt.Easing.out(Rt.Easing.ease),
+                    repeatReverse: false,
+                    loop: true,
+                    delay: index * 600,
+                }}
+                key={index}
+                style={[StyleSheet.absoluteFillObject, { 
+                    width: 100,
+                    height: 100,
+                    borderRadius: 100,
+                    backgroundColor: OCEANBLUE,
+                }]}
+            />
+            );
+        })}
+    </View> 
+    );
+}
 
+
+const CourseItem = ({ item, onPress, object }) => {
     return (
     <>
-        <View style={{ marginTop: 25,
-                    marginVertical: 24,
-                    marginHorizontal: 36,
-                    alignItems: 'flex-start' 
-                }}>
+        <View style={{ 
+                marginTop: 25,
+                marginVertical: 24,
+                marginHorizontal: 50,
+                alignItems: 'flex-start' 
+        }}>
             <View style={{ height: 125, alignItems: 'center', justifyContent: 'center' }}>
-
+                {object && (<ShineCircle />)}
                 <TouchableOpacity 
                     style={{ alignItems: 'center' }}
                     onPress={onPress}
@@ -185,7 +187,34 @@ const CourseItem = ({ item, onPress, object }) => {
                 </TouchableOpacity>
             </View>
         </View>
-        {dropDown}
+  
+        {/* Dropdown module with mount/unmout animations */}
+        <AnimatePresence>
+        {object && (
+            <MotiView
+            from={{ opacity: 1, height: 0 }}
+            animate={{ opacity: 1, height: 300 }}
+            exit={{
+                opacity: 0,
+                height: 0
+            }}
+            transition={{
+                type: 'timing',
+                duration: 300,
+                easing: Rt.Easing.out(Rt.Easing.ease),
+            }}
+            style={{ 
+                width: widthDevice,
+                height: 300,
+                backgroundColor: GRAYBLUE,
+                marginTop: 25,
+                }}
+            >
+                <View style={styles.triangle}></View>
+            </MotiView>
+        )}
+        </AnimatePresence>
+
     </>
     );
 };
@@ -231,12 +260,7 @@ class InitialScreen extends React.Component {
 
         return (
             <View style={{ flex: 1, backgroundColor: '#000' }}>
-                <View style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0, paddingLeft: 15 }}>
-                <MotiView
-                    from={{ opacity: 0, scale: 1 }}
-                    animate={{ opacity: 1, scale: 4}}
-                    style={[StyleSheet.absoluteFillObject, { width: 100, height: 100, backgroundColor: 'red'}]}
-                />
+                <View style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }}>
                     <Text 
                         onPress={() => this.props.navigation.navigate('Play', { data: this.context.data }) }
                         style={{ fontSize: 26, fontWeight: 'bold', color: 'white' }}
@@ -255,7 +279,6 @@ class InitialScreen extends React.Component {
                         extraData={this.state.selectedId}
                     >
                     </FlatList>
-
                 </View>
             </View>
         );
@@ -345,7 +368,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#3f4b59',
         borderLeftColor: 'transparent',
         position: 'absolute',
-        left: 90,
+        left: 105,
         top: -15,
     },
     triangleRight: {
