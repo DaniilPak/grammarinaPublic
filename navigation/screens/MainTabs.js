@@ -23,6 +23,8 @@ import VideoTests from './carousel/VideoTests';
 import { MyContext } from '../../MyContext';
 
 // Moti for animation
+import { MotiView } from 'moti';
+import 'react-native-reanimated';
 
 // Width and Height of the screen
 const { widthDevice, heightDevice } = Dimensions.get('screen');
@@ -230,7 +232,11 @@ class InitialScreen extends React.Component {
         return (
             <View style={{ flex: 1, backgroundColor: '#000' }}>
                 <View style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0, paddingLeft: 15 }}>
-                    
+                <MotiView
+                    from={{ opacity: 0, scale: 1 }}
+                    animate={{ opacity: 1, scale: 4}}
+                    style={[StyleSheet.absoluteFillObject, { width: 100, height: 100, backgroundColor: 'red'}]}
+                />
                     <Text 
                         onPress={() => this.props.navigation.navigate('Play', { data: this.context.data }) }
                         style={{ fontSize: 26, fontWeight: 'bold', color: 'white' }}
