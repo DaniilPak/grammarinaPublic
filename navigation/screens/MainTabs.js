@@ -92,6 +92,7 @@ function HomeTabs(){
 }
 
 
+
 // TESTING
 const DATA = [
     {
@@ -167,7 +168,7 @@ const ShineCircle = () => {
 
 
 const CourseItem = ({ item, onPress, object }) => {
-    const result = Object.keys(item.data).map(key => ({[key]: item.data[key]}));
+    const result = Object.keys(item.subcourses).map(key => ({[key]: item.subcourses[key]}));
 
     return (
     <>
@@ -201,7 +202,7 @@ const CourseItem = ({ item, onPress, object }) => {
                         paddingRight: 17,
                         fontWeight: 'bold',
                     }}>
-                    {item.title}
+                    {item.courseName}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -212,7 +213,7 @@ const CourseItem = ({ item, onPress, object }) => {
         {object && (
             <MotiView
             from={{ opacity: 1, height: 0 }}
-            animate={{ opacity: 1, height: 300 }}
+            animate={{ opacity: 1, height: result.length * 70 }} // 70 is a height of one subcourse
             exit={{
                 opacity: 0,
                 height: 0
@@ -224,10 +225,10 @@ const CourseItem = ({ item, onPress, object }) => {
             }}
             style={{ 
                 width: widthDevice,
-                height: 300,
+                height: result.length * 70, // 70 is a height of one subcourse
                 backgroundColor: GRAYBLUE,
                 marginTop: 25,
-                }}
+            }}
             >
                 <View style={item.id % 2 ? styles.triangle : styles.triangleRight}></View>
                 {result.map((rlt, index) => {
@@ -235,10 +236,9 @@ const CourseItem = ({ item, onPress, object }) => {
                         <MotiView 
                             from={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
                             transition={{
                                 type: 'timing',
-                                duration: 200,
+                                duration: 500,
                                 easing: Rt.Easing.out(Rt.Easing.ease),
                             }}
                             key={index + rlt} 
@@ -248,7 +248,7 @@ const CourseItem = ({ item, onPress, object }) => {
                                 fontSize: 20,
                                 color: 'white' 
                                 }}>
-                                {rlt[index].title}
+                                {rlt[index].subcourseTitle}
                             </Text>
                             <Text style={{
                                 position: 'absolute',
@@ -275,6 +275,60 @@ const CourseItem = ({ item, onPress, object }) => {
     </>
     );
 };
+
+// TESTING SectionList
+
+const DATATEST = [
+    {
+      section: "Main dishes",
+      data: [
+        {
+            id: '1',
+            courseName: 'Course first',
+            imgUri: "https://paksol.ru/gramma/girl.png",
+            subcourses: [
+                { subcourseTitle: "Инфинитив", link: 'https' },
+                { subcourseTitle: "Инфинитив", link: 'https' },
+            ]
+        },
+        {
+            id: '2',
+            courseName: 'Course first',
+            imgUri: "https://paksol.ru/gramma/mordenr.png",
+            subcourses: [
+                { subcourseTitle: "Инфинитив", link: 'https' },
+                { subcourseTitle: "Инфинитив", link: 'https' },
+                { subcourseTitle: "Инфинитив", link: 'https' },
+            ]
+        },
+      ]
+    },
+    {
+        section: "New dishes",
+        data: [
+          {
+              id: '3',
+              courseName: 'Course first',
+              imgUri: "https://paksol.ru/gramma/girl.png",
+              subcourses: [
+                  { subcourseTitle: "Инфинитив", link: 'https' },
+              ]
+          },
+          {
+              id: '4',
+              courseName: 'Course first',
+              imgUri: "https://paksol.ru/gramma/mordenr.png",
+              subcourses: [
+                  { subcourseTitle: "Инфинитив", link: 'https' },
+                  { subcourseTitle: "Инфинитив", link: 'https' },
+                  { subcourseTitle: "Инфинитив", link: 'https' },
+                  { subcourseTitle: "Инфинитив", link: 'https' },
+              ]
+          },
+        ]
+      },
+  ];
+
 
 // First Bottom Tab view 
 // Where video cources 
@@ -315,38 +369,52 @@ class InitialScreen extends React.Component {
             );
         }
 
+        const renderItemSectionList = ({item}) => {
+            // SectionList realized courses
+            const object = item.id === this.state.selectedId ? true : false;
+
+            return (
+                <CourseItem
+                    item={item}
+                    onPress={() => this.setSelectedId(item.id)}
+                    object={object}
+                />
+            );
+        }
+
         return (
             <View style={{ flex: 1, backgroundColor: '#000' }}>
                 {/* style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }} */}
                 <View>
                     <Text 
                         onPress={() => this.props.navigation.navigate('Play', { data: this.context.data }) }
-                        style={{ fontSize: 26, fontWeight: 'bold', color: 'white', marginLeft: 20, marginTop: 20 }}
+                        style={{ 
+                            fontSize: 26,
+                            fontWeight: 'bold',
+                            color: 'white',
+                            marginLeft: 20,
+                            marginTop: 20,
+                        }}
                     >Учебные курсы</Text>
-                    <View style={{ alignItems: 'center', marginTop: 20 }}>
-                        <Text
-                            style={{ fontSize: 26, fontWeight: 'bold', color: 'white' }}
-                        >Основы лексики</Text>
-                    </View>
-                    <FlatList
-                        data={DATA} // ex data
-                        keyExtractor={(_, index) => index.toString()}
-                        renderItem={renderItem}
-                        extraData={this.state.selectedId}
+
+                    <SectionList
+                        sections={DATATEST}
+                        keyExtractor={(_, index) => index.toString() }
                         contentContainerStyle={{ paddingBottom: 400 }} // Adds space on bottom of Flat List
-                    >
-                    </FlatList>
+                        renderItem={renderItemSectionList}
+                        renderSectionHeader={({ section: { section } }) => (
+                            <View style={{ alignItems: 'center', marginTop: 20 }}>
+                                <Text
+                                    style={{ fontSize: 26, fontWeight: 'bold', color: 'white' }}
+                                >{section}</Text>
+                            </View>
+                        )}
+                    />
                 </View>
             </View>
         );
     }
 };
-
-const Item = ({ title }) => (
-    <View>
-      <Text style={{backgroundColor: 'white'}}>{title}</Text>
-    </View>
-);
 
 // Context of InitialScreen
 InitialScreen.contextType = MyContext;
