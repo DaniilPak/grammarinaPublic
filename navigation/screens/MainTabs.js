@@ -1,6 +1,18 @@
 // Basic 
 import * as React from 'react';
-import { View, Text, Platform, StatusBar, StyleSheet, Image, Dimensions, TouchableOpacity, Animated, FlatList } from 'react-native';
+import { 
+    View,
+    Text,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Image,
+    Dimensions, 
+    TouchableOpacity,
+    Animated, 
+    FlatList,
+    SectionList 
+} from 'react-native';
 
 // Bottom tab, basic navigations
 import { NavigationContainer } from '@react-navigation/native';
@@ -25,7 +37,6 @@ import { MyContext } from '../../MyContext';
 // Moti for animation
 import { AnimatePresence, MotiView } from 'moti';
 import * as Rt from 'react-native-reanimated';
-import SectionList from 'react-native/Libraries/Lists/SectionList';
 
 // Width and Height of the screen
 const { widthDevice, heightDevice } = Dimensions.get('screen');
@@ -84,31 +95,37 @@ function HomeTabs(){
 // TESTING
 const DATA = [
     {
-      id: "1",
-      title: "First Item",
-      data: {
-          data1: 'data1',
-          data2: 'data2',
-          data3: 'data3',
-      }
+        id: "1",
+        title: "Основы грамматики",
+        imgUri: "https://paksol.ru/gramma/morde.png",
+        data: [
+            { title: "Инфинитив", link: 'https'},
+            { title: "Present Simple", link: 'https'},
+            { title: "Past Simple", link: 'https'},
+            { title: "Future Simple", link: 'https'},
+        ]
     },
     {
-      id: "2",
-      title: "Second Item",
-      data: {
-        data1: 'data1',
-        data2: 'data2',
-        data3: 'data3',
-    }
+        id: "2",
+        title: "Прилагательные",
+        imgUri: "https://paksol.ru/gramma/girl.png",
+        data: [
+            { title: "Can / Could", link: 'https'},
+            { title: "May / Might", link: 'https'},
+            { title: "Must", link: 'https'},
+            { title: "Have to / Have got to", link: 'https'},
+        ]
     },
     {
-      id: "3",
-      title: "Third Item",
-      data: {
-        data1: 'data1',
-        data2: 'data2',
-        data3: 'data3',
-    }
+        id: "3",
+        title: "Как вести диалог?",
+        imgUri: "https://paksol.ru/gramma/mordenr.png",
+        data: [
+            { title: "Род", link: 'https'},
+            { title: "Падеж", link: 'https'},
+            { title: "Притяжательные", link: 'https'},
+            { title: "Вопросительные", link: 'https'},
+        ]
     },
 ];
 
@@ -150,13 +167,15 @@ const ShineCircle = () => {
 
 
 const CourseItem = ({ item, onPress, object }) => {
+    const result = Object.keys(item.data).map(key => ({[key]: item.data[key]}));
+
     return (
     <>
         <View style={{ 
                 marginTop: 25,
                 marginVertical: 24,
                 marginHorizontal: 50,
-                alignItems: 'flex-start' 
+                alignItems: item.id % 2 ? 'flex-start' : 'flex-end'
         }}>
             <View style={{ height: 125, alignItems: 'center', justifyContent: 'center' }}>
                 {object && (<ShineCircle />)}
@@ -167,7 +186,7 @@ const CourseItem = ({ item, onPress, object }) => {
                 >
                     <Image
                         style={{ width: 125, height: 125 }}
-                        source={{uri: 'https://paksol.ru/gramma/rigby.png'}}
+                        source={{uri: item.imgUri}}
                     />
                     <Text style={{ 
                         position: 'absolute',
@@ -182,7 +201,7 @@ const CourseItem = ({ item, onPress, object }) => {
                         paddingRight: 17,
                         fontWeight: 'bold',
                     }}>
-                    Краткий разговор
+                    {item.title}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -200,7 +219,7 @@ const CourseItem = ({ item, onPress, object }) => {
             }}
             transition={{
                 type: 'timing',
-                duration: 300,
+                duration: 200,
                 easing: Rt.Easing.out(Rt.Easing.ease),
             }}
             style={{ 
@@ -210,7 +229,45 @@ const CourseItem = ({ item, onPress, object }) => {
                 marginTop: 25,
                 }}
             >
-                <View style={styles.triangle}></View>
+                <View style={item.id % 2 ? styles.triangle : styles.triangleRight}></View>
+                {result.map((rlt, index) => {
+                    return (
+                        <MotiView 
+                            from={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                                type: 'timing',
+                                duration: 200,
+                                easing: Rt.Easing.out(Rt.Easing.ease),
+                            }}
+                            key={index + rlt} 
+                            style={{ padding: 20 }}
+                        >
+                            <Text style={{ 
+                                fontSize: 20,
+                                color: 'white' 
+                                }}>
+                                {rlt[index].title}
+                            </Text>
+                            <Text style={{
+                                position: 'absolute',
+                                right: 15,
+                                top: 20,
+                                fontSize: 20,
+                                color: 'white',
+                                backgroundColor: OCEANBLUE,
+                                borderRadius: 5,
+                                paddingTop: 5,
+                                paddingBottom: 5,
+                                paddingLeft: 12,
+                                paddingRight: 12,
+                            }}>
+                            Учить
+                            </Text>
+                        </MotiView>
+                    );
+                })}
             </MotiView>
         )}
         </AnimatePresence>
@@ -260,23 +317,23 @@ class InitialScreen extends React.Component {
 
         return (
             <View style={{ flex: 1, backgroundColor: '#000' }}>
-                <View style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }}>
+                {/* style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }} */}
+                <View>
                     <Text 
                         onPress={() => this.props.navigation.navigate('Play', { data: this.context.data }) }
-                        style={{ fontSize: 26, fontWeight: 'bold', color: 'white' }}
+                        style={{ fontSize: 26, fontWeight: 'bold', color: 'white', marginLeft: 20, marginTop: 20 }}
                     >Учебные курсы</Text>
-                    {/*
-                    <View style={{ alignItems: 'center', paddingTop: 20 }}>
+                    <View style={{ alignItems: 'center', marginTop: 20 }}>
                         <Text
                             style={{ fontSize: 26, fontWeight: 'bold', color: 'white' }}
                         >Основы лексики</Text>
                     </View>
-                    */}
                     <FlatList
                         data={DATA} // ex data
                         keyExtractor={(_, index) => index.toString()}
                         renderItem={renderItem}
                         extraData={this.state.selectedId}
+                        contentContainerStyle={{ paddingBottom: 400 }} // Adds space on bottom of Flat List
                     >
                     </FlatList>
                 </View>
@@ -284,6 +341,12 @@ class InitialScreen extends React.Component {
         );
     }
 };
+
+const Item = ({ title }) => (
+    <View>
+      <Text style={{backgroundColor: 'white'}}>{title}</Text>
+    </View>
+);
 
 // Context of InitialScreen
 InitialScreen.contextType = MyContext;
@@ -368,7 +431,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#3f4b59',
         borderLeftColor: 'transparent',
         position: 'absolute',
-        left: 105,
+        left: 101,
         top: -15,
     },
     triangleRight: {
@@ -385,7 +448,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#3f4b59',
         borderLeftColor: 'transparent',
         position: 'absolute',
-        right: 90,
+        right: 101,
         top: -15,
     },
 });
