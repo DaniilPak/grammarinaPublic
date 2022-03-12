@@ -92,40 +92,55 @@ function HomeTabs(){
 }
 
 
+// SectionList data
 
-// TESTING
 const DATA = [
     {
-        id: "1",
-        title: "Основы грамматики",
-        imgUri: "https://paksol.ru/gramma/morde.png",
-        data: [
-            { title: "Инфинитив", link: 'https'},
-            { title: "Present Simple", link: 'https'},
-            { title: "Past Simple", link: 'https'},
-            { title: "Future Simple", link: 'https'},
-        ]
+      section: "Основы грамматики",
+      data: [
+        {
+            id: '1',
+            courseName: 'Местоимения',
+            imgUri: "https://paksol.ru/gramma/girl.png",
+            subcourses: [
+                { subcourseTitle: "Вопросительные", link: 'https' },
+                { subcourseTitle: "Личные", link: 'https' },
+            ]
+        },
+        {
+            id: '2',
+            courseName: 'Модальные глаголы',
+            imgUri: "https://paksol.ru/gramma/mordenr.png",
+            subcourses: [
+                { subcourseTitle: "Have to / Have got to", link: 'https' },
+                { subcourseTitle: "Must", link: 'https' },
+                { subcourseTitle: "Can / Could", link: 'https' },
+            ]
+        },
+      ]
     },
     {
-        id: "2",
-        title: "Прилагательные",
-        imgUri: "https://paksol.ru/gramma/girl.png",
+        section: "New dishes",
         data: [
-            { title: "Can / Could", link: 'https'},
-            { title: "May / Might", link: 'https'},
-            { title: "Must", link: 'https'},
-            { title: "Have to / Have got to", link: 'https'},
-        ]
-    },
-    {
-        id: "3",
-        title: "Как вести диалог?",
-        imgUri: "https://paksol.ru/gramma/mordenr.png",
-        data: [
-            { title: "Род", link: 'https'},
-            { title: "Падеж", link: 'https'},
-            { title: "Притяжательные", link: 'https'},
-            { title: "Вопросительные", link: 'https'},
+          {
+              id: '3',
+              courseName: 'Прилагательное',
+              imgUri: "https://paksol.ru/gramma/girl.png",
+              subcourses: [
+                  { subcourseTitle: "Определение", link: 'https' },
+              ]
+          },
+          {
+              id: '4',
+              courseName: 'Существительное',
+              imgUri: "https://paksol.ru/gramma/mordenr.png",
+              subcourses: [
+                  { subcourseTitle: "Определение", link: 'https' },
+                  { subcourseTitle: "Род", link: 'https' },
+                  { subcourseTitle: "Падеж", link: 'https' },
+                  { subcourseTitle: "Функции в предложении", link: 'https' },
+              ]
+          },
         ]
     },
 ];
@@ -177,7 +192,7 @@ const CourseItem = ({ item, onPress, object }) => {
                 marginVertical: 24,
                 marginHorizontal: 50,
                 alignItems: item.id % 2 ? 'flex-start' : 'flex-end'
-        }}>
+            }}>
             <View style={{ height: 125, alignItems: 'center', justifyContent: 'center' }}>
                 {object && (<ShineCircle />)}
                 <TouchableOpacity 
@@ -212,23 +227,23 @@ const CourseItem = ({ item, onPress, object }) => {
         <AnimatePresence>
         {object && (
             <MotiView
-            from={{ opacity: 1, height: 0 }}
-            animate={{ opacity: 1, height: result.length * 70 }} // 70 is a height of one subcourse
-            exit={{
-                opacity: 0,
-                height: 0
-            }}
-            transition={{
-                type: 'timing',
-                duration: 200,
-                easing: Rt.Easing.out(Rt.Easing.ease),
-            }}
-            style={{ 
-                width: widthDevice,
-                height: result.length * 70, // 70 is a height of one subcourse
-                backgroundColor: GRAYBLUE,
-                marginTop: 25,
-            }}
+                from={{ opacity: 1, height: 0 }}
+                animate={{ opacity: 1, height: result.length * 70 }} // 70 is a height of one subcourse
+                exit={{
+                    opacity: 0,
+                    height: 0
+                }}
+                transition={{
+                    type: 'timing',
+                    duration: 200,
+                    easing: Rt.Easing.out(Rt.Easing.ease),
+                }}
+                style={{ 
+                    width: widthDevice,
+                    height: result.length * 70, // 70 is a height of one subcourse
+                    backgroundColor: GRAYBLUE,
+                    marginTop: 25,
+                }}
             >
                 <View style={item.id % 2 ? styles.triangle : styles.triangleRight}></View>
                 {result.map((rlt, index) => {
@@ -247,9 +262,7 @@ const CourseItem = ({ item, onPress, object }) => {
                             <Text style={{ 
                                 fontSize: 20,
                                 color: 'white' 
-                                }}>
-                                {rlt[index].subcourseTitle}
-                            </Text>
+                            }}>{rlt[index].subcourseTitle}</Text>
                             <Text style={{
                                 position: 'absolute',
                                 right: 15,
@@ -262,72 +275,16 @@ const CourseItem = ({ item, onPress, object }) => {
                                 paddingBottom: 5,
                                 paddingLeft: 12,
                                 paddingRight: 12,
-                            }}>
-                            Учить
-                            </Text>
+                            }}>Учить</Text>
                         </MotiView>
                     );
                 })}
             </MotiView>
         )}
         </AnimatePresence>
-
     </>
     );
 };
-
-// TESTING SectionList
-
-const DATATEST = [
-    {
-      section: "Main dishes",
-      data: [
-        {
-            id: '1',
-            courseName: 'Course first',
-            imgUri: "https://paksol.ru/gramma/girl.png",
-            subcourses: [
-                { subcourseTitle: "Инфинитив", link: 'https' },
-                { subcourseTitle: "Инфинитив", link: 'https' },
-            ]
-        },
-        {
-            id: '2',
-            courseName: 'Course first',
-            imgUri: "https://paksol.ru/gramma/mordenr.png",
-            subcourses: [
-                { subcourseTitle: "Инфинитив", link: 'https' },
-                { subcourseTitle: "Инфинитив", link: 'https' },
-                { subcourseTitle: "Инфинитив", link: 'https' },
-            ]
-        },
-      ]
-    },
-    {
-        section: "New dishes",
-        data: [
-          {
-              id: '3',
-              courseName: 'Course first',
-              imgUri: "https://paksol.ru/gramma/girl.png",
-              subcourses: [
-                  { subcourseTitle: "Инфинитив", link: 'https' },
-              ]
-          },
-          {
-              id: '4',
-              courseName: 'Course first',
-              imgUri: "https://paksol.ru/gramma/mordenr.png",
-              subcourses: [
-                  { subcourseTitle: "Инфинитив", link: 'https' },
-                  { subcourseTitle: "Инфинитив", link: 'https' },
-                  { subcourseTitle: "Инфинитив", link: 'https' },
-                  { subcourseTitle: "Инфинитив", link: 'https' },
-              ]
-          },
-        ]
-      },
-  ];
 
 
 // First Bottom Tab view 
@@ -357,18 +314,6 @@ class InitialScreen extends React.Component {
     }
 
     render() {
-        const renderItem = ({item}) => {
-            const object = item.id === this.state.selectedId ? true : false;
-
-            return (
-                <CourseItem
-                    item={item}
-                    onPress={() => this.setSelectedId(item.id)}
-                    object={object}
-                />
-            );
-        }
-
         const renderItemSectionList = ({item}) => {
             // SectionList realized courses
             const object = item.id === this.state.selectedId ? true : false;
@@ -393,12 +338,13 @@ class InitialScreen extends React.Component {
                             fontWeight: 'bold',
                             color: 'white',
                             marginLeft: 20,
-                            marginTop: 20,
+                            marginTop: 10,
+                            marginBottom: 10
                         }}
                     >Учебные курсы</Text>
 
                     <SectionList
-                        sections={DATATEST}
+                        sections={DATA}
                         keyExtractor={(_, index) => index.toString() }
                         contentContainerStyle={{ paddingBottom: 400 }} // Adds space on bottom of Flat List
                         renderItem={renderItemSectionList}
