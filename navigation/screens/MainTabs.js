@@ -1,22 +1,18 @@
-// Basic 
+
 import * as React from 'react';
 import { 
     View,
     Text,
-    Platform,
-    StatusBar,
     StyleSheet,
     Image,
     Dimensions, 
     TouchableOpacity,
-    Animated, 
-    FlatList,
     SectionList,
     TextInput,
     Button,
 } from 'react-native';
 
-// Bottom tab, basic navigations
+// Bottom tab, and basic navigations
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -24,11 +20,11 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 // Icons
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Screens 
+// Navigation bottom Screens 
 import DetailsScreen from './DetailsScreen';
 import SettingsScreen from './SettingsScreen';
 
-// VideoCards, VideoTests
+// Video modules
 import VideoCards from './carousel/VideoCards';
 import VideoTests from './carousel/VideoTests';
 
@@ -38,10 +34,12 @@ import { MyContext } from '../../MyContext';
 
 // Moti for animation
 import { AnimatePresence, MotiView } from 'moti';
-import * as Rt from 'react-native-reanimated';
+import * as Reanimated from 'react-native-reanimated';
 
 // Local secure storage
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// ### CONSTANTS ### 
 
 // Width and Height of the screen
 const { widthDevice, heightDevice } = Dimensions.get('screen');
@@ -63,42 +61,8 @@ const MyTheme = {
     },
 };
 
-// Creating bottom tab navigator
-// It is a nested stack
-// It's parent is basic Stack Screens
-const Tab = createBottomTabNavigator();
-
-function HomeTabs(){
-    return(
-        <Tab.Navigator
-            initialRouteName={'Home'}
-            screenOptions={({route}) => ({
-                tabBarIcon: ({ focused, color, size }) => {
-                    let iconName;
-                    let rn = route.name;
-
-                    if (rn === 'Home') {
-                        iconName = focused ? 'home' : 'home-outline';
-                    } else if (rn === 'Details') {
-                        iconName = focused ? 'list' : 'list-outline';
-                    } else if (rn === 'Settings') {
-                        iconName = focused ? 'settings' : 'settings-outline';
-                    }
-
-                    return <Ionicons name={iconName} size={size} color={color} />
-                }
-            })}
-        >
-            <Tab.Screen name={'Home'} component={InitialScreen} options={{header: () => null}} />
-            <Tab.Screen name={'Details'} component={DetailsScreen} options={{header: () => null}} />
-            <Tab.Screen name={'Settings'} component={SettingsScreen} options={{header: () => null}} />
-        </Tab.Navigator>
-    );
-}
-
-
-// SectionList data
-
+// ### Backend data ###
+// SectionList data 
 const DATA = [
     {
       section: "Основы грамматики",
@@ -150,8 +114,42 @@ const DATA = [
     },
 ];
 
+// Creating bottom tab navigator
+// It is a nested stack
+// It's parent is basic Stack Screens
+const Tab = createBottomTabNavigator();
+
+function HomeTabs(){
+    return(
+        <Tab.Navigator
+            initialRouteName={'Home'}
+            screenOptions={({route}) => ({
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconName;
+                    let rn = route.name;
+
+                    if (rn === 'Home') {
+                        iconName = focused ? 'home' : 'home-outline';
+                    } else if (rn === 'Details') {
+                        iconName = focused ? 'list' : 'list-outline';
+                    } else if (rn === 'Settings') {
+                        iconName = focused ? 'settings' : 'settings-outline';
+                    }
+
+                    return <Ionicons name={iconName} size={size} color={color} />
+                }
+            })}
+        >
+            <Tab.Screen name={'Home'} component={InitialScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Details'} component={DetailsScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Settings'} component={SettingsScreen} options={{header: () => null}} />
+        </Tab.Navigator>
+    );
+}
+
+// ### Courses
 // Course item
-// Shining animation
+// Shining circle animation
 const ShineCircle = () => {
     return (
     <View style={{
@@ -167,7 +165,7 @@ const ShineCircle = () => {
                 transition={{
                     type: 'timing',
                     duration: 3000,
-                    easing: Rt.Easing.out(Rt.Easing.ease),
+                    easing: Reanimated.Easing.out(Reanimated.Easing.ease),
                     repeatReverse: false,
                     loop: true,
                     delay: index * 600,
@@ -186,7 +184,7 @@ const ShineCircle = () => {
     );
 }
 
-
+// Course component
 const CourseItem = ({ item, onPress, object }) => {
     const result = Object.keys(item.subcourses).map(key => ({[key]: item.subcourses[key]}));
 
@@ -241,7 +239,7 @@ const CourseItem = ({ item, onPress, object }) => {
                 transition={{
                     type: 'timing',
                     duration: 200,
-                    easing: Rt.Easing.out(Rt.Easing.ease),
+                    easing: Reanimated.Easing.out(Reanimated.Easing.ease),
                 }}
                 style={{ 
                     width: widthDevice,
@@ -259,7 +257,7 @@ const CourseItem = ({ item, onPress, object }) => {
                             transition={{
                                 type: 'timing',
                                 duration: 500,
-                                easing: Rt.Easing.out(Rt.Easing.ease),
+                                easing: Reanimated.Easing.out(Reanimated.Easing.ease),
                             }}
                             key={index + rlt} 
                             style={{ padding: 20 }}
@@ -290,7 +288,6 @@ const CourseItem = ({ item, onPress, object }) => {
     </>
     );
 };
-
 
 // First Bottom Tab view 
 // Where video cources 
@@ -337,7 +334,7 @@ class InitialScreen extends React.Component {
                 {/* style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }} */}
                 <View>
                     <Text 
-                        onPress={() => this.props.navigation.navigate('Play', { data: this.context.data }) }
+                        onPress={() => this.props.navigation.navigate('Play') }
                         style={{ 
                             fontSize: 26,
                             fontWeight: 'bold',
@@ -361,6 +358,7 @@ class InitialScreen extends React.Component {
                             </View>
                         )}
                     />
+                    
                 </View>
             </View>
         );
@@ -369,6 +367,21 @@ class InitialScreen extends React.Component {
 
 // Context of InitialScreen
 InitialScreen.contextType = MyContext;
+
+// Base screen, where all video learning are 
+// playing
+// May be used in different parts of App
+class PlayScreen extends React.Component {
+    render(){
+        return (
+            <View style={{ flex: 1 }}>
+                <VideoTests />
+            </View>
+        );
+    }
+};
+
+
 
 // Tabs Parent
 // Creating basic stack navigator
@@ -454,7 +467,7 @@ function MainContainer({ navigation }) {
             <NavigationContainer theme={MyTheme}>
                 <Stack.Navigator>
                     {state.isLoading ? (
-                        <Stack.Screen name='Splash' component={SplashScreen} />
+                        <Stack.Screen name='Loading' component={LoadingScreen} />
                     ) : state.userToken == null ? (
                         <Stack.Screen
                             name='SignIn'
@@ -508,20 +521,9 @@ function SignInScreen() {
       </View>
     );
 }
-  
 
-function HomeScreen() {
-    const { signOut } = React.useContext(AuthContext);
-  
-    return (
-      <View>
-        <Text>Signed in!</Text>
-        <Button title="Sign out" onPress={signOut} />
-      </View>
-    );
-}
-
-function SplashScreen() {
+// Loading screen
+function LoadingScreen() {
     return (
       <View>
         <Text>Loading...</Text>
@@ -529,33 +531,7 @@ function SplashScreen() {
     );
 }
 
-// Base screen, where all video learning are 
-// playing
-// May be used in different parts of App
-class PlayScreen extends React.Component {
-    render(){
-        const data = this.context.data;
 
-        return (
-            <View style={{ flex: 1 }}>
-                <VideoTests />
-            {/* 
-            {this.context.isLoading ? <ActivityIndicator/> : (
-                <FlatList
-                data={this.context.data}
-                keyExtractor={({ id }, index) => id}
-                renderItem={({ item }) => (
-                    <Text>{item.title}, {item.releaseYear}</Text>
-                )}
-                />
-            )}
-            */}
-            </View>
-        );
-    }
-};
-
-PlayScreen.contextType = MyContext;
 
 // StyleSheet
 const styles = StyleSheet.create({
