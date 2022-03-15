@@ -11,7 +11,9 @@ import {
     TouchableOpacity,
     Animated, 
     FlatList,
-    SectionList 
+    SectionList,
+    TextInput,
+    Button,
 } from 'react-native';
 
 // Bottom tab, basic navigations
@@ -37,6 +39,9 @@ import { MyContext } from '../../MyContext';
 // Moti for animation
 import { AnimatePresence, MotiView } from 'moti';
 import * as Rt from 'react-native-reanimated';
+
+// Local secure storage
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Width and Height of the screen
 const { widthDevice, heightDevice } = Dimensions.get('screen');
@@ -370,34 +375,158 @@ InitialScreen.contextType = MyContext;
 // It owns a bottom tab navigator
 // So that PlayScreen not having a bottom tab 
 // Only Screens inside "HomeTabs" having a bottom tab
+
+// Authentication test
+const AuthContext = React.createContext();
+
 const Stack = createNativeStackNavigator();
 
-class MainContainer extends React.Component {
-    render() {
-        return(
-            // Transfer data using Context Provider
-            <MyContext.Provider
-                value={{
-                        data: 'Context data text',
-                    }}
-            >
-                <NavigationContainer theme={MyTheme}>
-                    <Stack.Navigator>
+function MainContainer({ navigation }) {
+    const [state, dispatch] = React.useReducer(
+        (prevState, action) => {
+            switch (action.type) {
+                case 'RESTORE_TOKEN':
+                    return {
+                        ...prevState,
+                        userToken: action.token,
+                        isLoading: false,
+                    };
+                case 'SIGN_IN':
+                    return {
+                        ...prevState,
+                        isSignout: false,
+                        userToken: action.token,
+                    };
+                case 'SIGN_OUT':
+                    return {
+                        ...prevState,
+                        isSignout: true,
+                        userToken: null,
+                    };
+            }
+        }, 
+        {
+            isLoading: true, 
+            isSignout: false,
+            userToken: null
+        }
+    );
+
+    React.useEffect(() => {
+        const boostrapAsync = async () => {
+            let userToken;
+            
+            try {
+                userToken = await AsyncStorage.getItem('token');
+            } catch (e) {
+
+            }
+
+            dispatch({ type: 'RESTORE_TOKEN', token: userToken });
+        };
+
+        boostrapAsync();
+    }, [])
+
+    const authContext = React.useMemo(
+        () => ({
+            signIn: async (data) => {
+                const setasyncKey = async () => {
+                    try {
+                        await AsyncStorage.setItem('token', 'dummy-auth-token');
+                    } catch (e) {
+
+                    }
+                };
+                setasyncKey();
+                // ...
+                dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+            }, 
+            signOut: () => dispatch({ type: 'SIGN_OUT' }),
+            signUp: async (data) => {
+                dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+            }
+        }), []
+    );
+
+    return (
+        <AuthContext.Provider value={authContext}>
+            <NavigationContainer theme={MyTheme}>
+                <Stack.Navigator>
+                    {state.isLoading ? (
+                        <Stack.Screen name='Splash' component={SplashScreen} />
+                    ) : state.userToken == null ? (
                         <Stack.Screen
-                            name="HomeTabs"
-                            component={HomeTabs}
-                            options={{ header: () => null }} // Makes header disappear: header: () => null,
+                            name='SignIn'
+                            component={SignInScreen}
+                            options={{
+                                title: 'Sign In',
+                                // When logging out, a pop animation feels intuitive
+                                animationTypeForReplace: state.isSignout ? 'pop' : 'push',
+                            }}
                         />
-                        <Stack.Screen 
-                            name="Play"
-                            component={PlayScreen}
-                            options={{ header: () => null }} // Makes header disappear: header: () => null,
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </MyContext.Provider>
-        );
-    }
+                    ) : (
+                        <>
+                            <Stack.Screen
+                                name="HomeTabs"
+                                component={HomeTabs}
+                                options={{ header: () => null }} // Makes header disappear: header: () => null,
+                            />
+                            <Stack.Screen 
+                                name="Play"
+                                component={PlayScreen}
+                                options={{ header: () => null }} // Makes header disappear: header: () => null,
+                            />
+                        </>
+                    )}
+                </Stack.Navigator>
+            </NavigationContainer>
+        </AuthContext.Provider>
+    );
+}
+
+function SignInScreen() {
+    const [username, setUsername] = React.useState('');
+    const [password, setPassword] = React.useState('');
+  
+    const { signIn } = React.useContext(AuthContext);
+  
+    return (
+      <View>
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+        />
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <Button title="Sign in" onPress={() => signIn({ username, password })} />
+      </View>
+    );
+}
+  
+
+function HomeScreen() {
+    const { signOut } = React.useContext(AuthContext);
+  
+    return (
+      <View>
+        <Text>Signed in!</Text>
+        <Button title="Sign out" onPress={signOut} />
+      </View>
+    );
+}
+
+function SplashScreen() {
+    return (
+      <View>
+        <Text>Loading...</Text>
+      </View>
+    );
 }
 
 // Base screen, where all video learning are 
