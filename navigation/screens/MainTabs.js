@@ -18,11 +18,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Icons
+import IconEntypo from 'react-native-vector-icons/Entypo';
+import IconFontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Navigation bottom Screens 
 import DetailsScreen from './DetailsScreen';
 import SettingsScreen from './SettingsScreen';
+import CheckerScreen from './CheckerScreen';
 
 // Video modules
 import VideoCards from './carousel/VideoCards';
@@ -123,24 +126,30 @@ function HomeTabs(){
     return(
         <Tab.Navigator
             initialRouteName={'Home'}
-            screenOptions={({route}) => ({
-                tabBarIcon: ({ focused, color, size }) => {
-                    let iconName;
+            screenOptions={({ route }) => ({
+                tabBarIcon: ({ focused }) => {
+                    let iconColor;
                     let rn = route.name;
 
                     if (rn === 'Home') {
-                        iconName = focused ? 'home' : 'home-outline';
+                        iconColor = focused ? 'white' : '#999';
+                        return <IconFontAwesome5 name="graduation-cap" size={30} color={iconColor} />
                     } else if (rn === 'Details') {
-                        iconName = focused ? 'list' : 'list-outline';
+                        iconColor = focused ? 'white' : '#999';
+                        return <Ionicons name='search' size={30} color={iconColor} />
+                    } else if (rn === 'Checker') {
+                        iconColor = focused ? 'white' : '#999';
+                        return <Ionicons name="albums-sharp" size={30} color={iconColor} />
                     } else if (rn === 'Settings') {
-                        iconName = focused ? 'settings' : 'settings-outline';
+                        iconColor = focused ? 'white' : '#999';
+                        return <Ionicons name="person" size={30} color={iconColor} />
                     }
-
-                    return <Ionicons name={iconName} size={size} color={color} />
+                    
                 }
             })}
         >
             <Tab.Screen name={'Home'} component={InitialScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Checker'} component={CheckerScreen} options={{header: () => null}} />
             <Tab.Screen name={'Details'} component={DetailsScreen} options={{header: () => null}} />
             <Tab.Screen name={'Settings'} component={SettingsScreen} options={{header: () => null}} />
         </Tab.Navigator>
