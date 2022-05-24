@@ -194,8 +194,8 @@ const ShineCircle = () => {
 }
 
 // Course component
-const CourseItem = ({ item, onPress, object }) => {
-    const result = Object.keys(item.subcourses).map(key => ({[key]: item.subcourses[key]}));
+const CourseItem = ({ item, onPress, object, props }) => {
+    const result = Object.keys(item.sub_courses).map(key => ({[key]: item.sub_courses[key]}));
 
     return (
     <>
@@ -214,7 +214,7 @@ const CourseItem = ({ item, onPress, object }) => {
                 >
                     <Image
                         style={{ width: 125, height: 125 }}
-                        source={{uri: item.imgUri}}
+                        source={{uri: item.img_uri}}
                     />
                     <Text style={{ 
                         position: 'absolute',
@@ -229,7 +229,7 @@ const CourseItem = ({ item, onPress, object }) => {
                         paddingRight: 17,
                         fontWeight: 'bold',
                     }}>
-                    {item.courseName}
+                    {item.course_name}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -274,8 +274,10 @@ const CourseItem = ({ item, onPress, object }) => {
                             <Text style={{ 
                                 fontSize: 20,
                                 color: 'white' 
-                            }}>{rlt[index].subcourseTitle}</Text>
-                            <Text style={{
+                            }}>{rlt[index].subcourse_title}</Text>
+                            <Text 
+                            onPress={() => props.navigation.navigate('Play', { api_link_cards: rlt[index].api_link_cards, api_link_tests: rlt[index].api_link_tests } )}
+                            style={{
                                 position: 'absolute',
                                 right: 15,
                                 top: 20,
@@ -307,9 +309,32 @@ class InitialScreen extends React.Component {
         this.setSelectedId = this.setSelectedId.bind(this);
 
         this.state = {
+            data: [], // DATA from API
             selectedId: null
         }
     }
+    
+    // Getting data from API
+    async getCoursesFromApi() {
+        try {
+            // API for Courses
+            const response = await fetch('https://grina.paksol.ru/');
+            // Getting API JSON as TEXT
+            // and replacing all &quot; to " character
+            const api_data_text = await (await response.text()).replaceAll('&quot;', '"');
+            let api_json = JSON.parse(api_data_text);
+            // Finally saving api data to state
+            this.setState({ data: api_json });
+            // console.log(this.state.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    
+    componentDidMount() {
+        this.getCoursesFromApi();
+    }
+    // Getting API end
 
     setSelectedId = (id) => {
         if(id === this.state.selectedId) {
@@ -334,6 +359,7 @@ class InitialScreen extends React.Component {
                     item={item}
                     onPress={() => this.setSelectedId(item.id)}
                     object={object}
+                    props={this.props}
                 />
             );
         }
@@ -342,20 +368,9 @@ class InitialScreen extends React.Component {
             <View style={{ flex: 1, backgroundColor: '#000' }}>
                 {/* style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }} */}
                 <View>
-                    <Text 
-                        onPress={() => this.props.navigation.navigate('Play') }
-                        style={{ 
-                            fontSize: 26,
-                            fontWeight: 'bold',
-                            color: 'white',
-                            marginLeft: 20,
-                            marginTop: 10,
-                            marginBottom: 10
-                        }}
-                    >Учебные курсы</Text>
 
                     <SectionList
-                        sections={DATA}
+                        sections={this.state.data}
                         keyExtractor={(_, index) => index.toString() }
                         contentContainerStyle={{ paddingBottom: 400 }} // Adds space on bottom of Flat List
                         renderItem={renderItemSectionList}
@@ -380,15 +395,39 @@ InitialScreen.contextType = MyContext;
 // Base screen, where all video learning are 
 // playing
 // May be used in different parts of App
-class PlayScreen extends React.Component {
-    render(){
-        return (
-            <View style={{ flex: 1 }}>
-                <VideoTests />
-            </View>
-        );
-    }
+const StackPlay = createNativeStackNavigator();
+
+function PlayScreen({ route }) {
+    // Saving api data
+    const { api_link_cards, api_link_tests } = route.params;
+    
+    {/* <View style={{ flex: 1 }}>
+        { /* <VideoCards apilink={api_link_cards} /> 
+        <VideoTests apilink={api_link_tests} />
+    </View> */ }
+
+    return (
+
+        <StackPlay.Navigator>
+            <StackPlay.Screen 
+                name='Videocards'
+                component={VideoCards}
+                options={{ header: () => null }} // Makes header disappear: header: () => null,
+                initialParams={{ apilink: api_link_cards }} 
+            />
+            <StackPlay.Screen
+                name='Videotests' 
+                component={VideoTests}
+                options={{ header: () => null }} // Makes header disappear: header: () => null,
+                initialParams={{ apilink: api_link_tests }} 
+            />
+        </StackPlay.Navigator>
+            
+    );
+
 };
+
+
 
 
 

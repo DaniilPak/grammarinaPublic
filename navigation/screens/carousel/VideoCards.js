@@ -13,7 +13,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 const { width, height } = Dimensions.get('screen');
 const window = Dimensions.get('window');
 
-const data = [
+/* const data = [
     'https://cdn.dribbble.com/users/3281732/screenshots/11192830/media/7690704fa8f0566d572a085637dd1eee.jpg?compress=1&resize=1200x1200',
     'https://cdn.dribbble.com/users/3281732/screenshots/13130602/media/592ccac0a949b39f058a297fd1faa38e.jpg?compress=1&resize=1200x1200',
     'https://cdn.dribbble.com/users/3281732/screenshots/9165292/media/ccbfbce040e1941972dbc6a378c35e98.jpg?compress=1&resize=1200x1200',
@@ -21,7 +21,7 @@ const data = [
     'https://cdn.dribbble.com/users/3281732/screenshots/7003560/media/48d5ac3503d204751a2890ba82cc42ad.jpg?compress=1&resize=1200x1200',
     'https://cdn.dribbble.com/users/3281732/screenshots/6727912/samji_illustrator.jpeg?compress=1&resize=1200x1200',
     'https://cdn.dribbble.com/users/3281732/screenshots/13661330/media/1d9d3cd01504fa3f5ae5016e5ec3a313.jpg?compress=1&resize=1200x1200'
-];
+];  data for colorful background */
 
 const dataReal = [{ 
     image: 'http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
@@ -150,8 +150,25 @@ export default class VideoCards extends React.Component {
         dimensions: {
             window
         },
+        data: [], // DATA from API
     };
     
+    // Getting Cards as JSON from API
+    async getApiCards() {
+        try {
+            // API for Cards
+            const response = await fetch(this.props.route.params.apilink);
+            // Getting API JSON as TEXT
+            // and replacing all &quot; to " character
+            const api_data_text = await (await response.text()).replaceAll('&quot;', '"');
+            let api_json = JSON.parse(api_data_text);
+            // Finally saving api data to state
+            this.setState({ data: api_json });
+            // console.log(this.state.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     onDimensionsChange = ({ window }) => {
         this.setState({ dimensions: { window } });
@@ -161,6 +178,9 @@ export default class VideoCards extends React.Component {
 
     componentDidMount() {
         this.dimensionChange = Dimensions.addEventListener("change", this.onDimensionsChange);
+    
+        // getting API function
+        this.getApiCards();
     }
     
     componentWillUnmount() {
@@ -170,13 +190,18 @@ export default class VideoCards extends React.Component {
     render() {
         const windowWidth = this.state.dimensions.window.width;
 
+        const onEnd = () => {
+            console.log('End of Cards reached');
+            this.props.navigation.navigate('Videotests');
+        }
+
         return (
             <View style={{ flex: 1, backgroundColor: '#000' }}>
                 { /* Page indicators */}
                 <View
                     style={styles.indicatorContainer}
                 >
-                    {dataReal.map((image, index) => {
+                    {this.state.data.map((image, index) => {
                         const width = this.scrollX.interpolate({
                             inputRange: [
                                 windowWidth * (index - 1),
@@ -232,7 +257,7 @@ export default class VideoCards extends React.Component {
                 <View
                     style={StyleSheet.absoluteFillObject}
                 >
-                    {data.map((image, index) => {
+                    { /* data.map((image, index) => {
                         const inputRange = [
                             (index - 1) * width,
                             index * width,
@@ -252,10 +277,12 @@ export default class VideoCards extends React.Component {
                             ]}
                             blurRadius={50}
                         />
-                    })}
+                    }) Images colorful background */ }
                 </View>
                 <Animated.FlatList
-                    data={dataReal}
+                    data={this.state.data}
+                    onEndReached={onEnd}
+                    ListFooterComponent={<View><Text>VOID</Text></View>} // Void space to emulate void item in Flat List
                     onScroll={Animated.event([
                         {
                             nativeEvent: {
@@ -293,7 +320,7 @@ export default class VideoCards extends React.Component {
                                                 fontSize: 20,
                                                 color: '#c7c7c9', // Dim white
                                             }}
-                                        >Так можно задавать вопрос</Text>
+                                        >{item.tip}</Text>
                                     </View>
                                     <View
                                         style={{
@@ -324,7 +351,7 @@ export default class VideoCards extends React.Component {
                                                     textAlignVertical: 'center',
                                                     color: '#07c5e5', // light blue
                                                 }}
-                                            >Hello, hello. What kind of bird are you?</Text>
+                                            >{item.eng_text}</Text>
                                             <Text
                                                 style={{
                                                     flex: 1,
@@ -333,7 +360,7 @@ export default class VideoCards extends React.Component {
                                                     textAlignVertical: 'center',
                                                     color: '#fff',
                                                 }}
-                                            >Привет, привет. Что ты за птица такая?</Text>
+                                            >{item.rus_text}</Text>
                                         </View>
 
                                     </View>
@@ -358,7 +385,7 @@ const VideoComponent = ({ item }) => {
                 onPress={() => { setVideoPaused(!videoPaused) }}
             >
                 <Video
-                    source={{ uri: item.image }}
+                    source={{ uri: "https://grina.paksol.ru/backend/media/" + item.source }}
                     rate={1.0}
                     volume={1.0}
                     muted={false}

@@ -56,104 +56,54 @@ const videoHeight = videoWidth * 0.55;
 // Информация которую приложение получает
 // от сервера
 // Каждный блок - один видеотест
-const data = [{ 
-    image: 'https://paksol.ru/gramma/Forest.mp4',
+var data = [{ 
+    source: 'https://paksol.ru/gramma/Forest.mp4',
     poster: 'https://paksol.ru/gramma/Forest.png',
     tip: "Там можно спросить - что смешного?",
-    serverChoice1: {
+    server_choice_1: {
         text: "What's so funny?",
         correct: true,
-        choiceIndex: 0,
+        choice_index: 0,
     },
-    serverChoice2: {
+    server_choice_2: {
         text: "What funny?",
         correct: false,
-        choiceIndex: 1,
+        choice_index: 1,
     },
-    serverChoice3: {
+    server_choice_3: {
         text: "So so funny?",
         correct: false,
-        choiceIndex: 2,
+        choice_index: 2,
     },
-    serverChoice4: {
+    server_choice_4: {
         text: "What no funny?",
         correct: false,
-        choiceIndex: 3,
+        choice_index: 3,
     },
 },
 { 
-    image: 'https://paksol.ru/gramma/wallstreet.mp4',
+    source: 'https://paksol.ru/gramma/wallstreet.mp4',
     poster: 'https://paksol.ru/gramma/wolf.png',
     tip: "Какой же отличный день!",
-    serverChoice1: {
+    server_choice_1: {
         text: "Wooh, what a day!",
         correct: false,
-        choiceIndex: 0,
+        choice_index: 0,
     },
-    serverChoice2: {
+    server_choice_2: {
         text: "Wooh, what day!",
         correct: false,
-        choiceIndex: 1,
+        choice_index: 1,
     },
-    serverChoice3: {
+    server_choice_3: {
         text: "Wooh, what a nice day!",
         correct: true,
-        choiceIndex: 2,
+        choice_index: 2,
     },
-    serverChoice4: {
+    server_choice_4: {
         text: "Wow, what nice day!",
         correct: false,
-        choiceIndex: 3,
-    },
-},
-{ 
-    image: 'https://paksol.ru/gramma/bruce.mp4',
-    poster: 'https://paksol.ru/gramma/bruceall.png',
-    tip: "Привет привет =)",
-    serverChoice1: {
-        text: "Ho ho ho hoo..",
-        correct: false,
-        choiceIndex: 0,
-    },
-    serverChoice2: {
-        text: "No no no no..",
-        correct: false,
-        choiceIndex: 1,
-    },
-    serverChoice3: {
-        text: "Hello..hello hello hello hello",
-        correct: true,
-        choiceIndex: 2,
-    },
-    serverChoice4: {
-        text: "Halo halo halo",
-        correct: false,
-        choiceIndex: 3,
-    },
-},
-{ 
-    image: 'http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4',
-    poster: 'https://www.w3schools.com/tags/img_girl.jpg',
-    tip: "Some tip",
-    serverChoice1: {
-        text: "What's so funny?",
-        correct: false,
-        choiceIndex: 0,
-    },
-    serverChoice2: {
-        text: "What's so funny?",
-        correct: false,
-        choiceIndex: 1,
-    },
-    serverChoice3: {
-        text: "What's so funny?",
-        correct: false,
-        choiceIndex: 2,
-    },
-    serverChoice4: {
-        text: "What's so funny?",
-        correct: true,
-        choiceIndex: 3,
+        choice_index: 3,
     },
 },
 ];
@@ -164,6 +114,7 @@ export default class VideoTests extends React.Component {
     scrollX = new Animated.Value(0);
 
     state = {
+        data: [],
         // Переменные для
         // анимации тряски
         // при неправильном ответе
@@ -185,8 +136,33 @@ export default class VideoTests extends React.Component {
         progressVal: 0,
     };
 
+    // API request
+    // Getting Tests as JSON from API
+    async getApiTests() {
+        try {
+            // API for Tests
+            const response = await fetch(this.props.route.params.apilink); // Apilink is data from initialParams from Stack.Screen
+            // Getting API JSON as TEXT
+            // and replacing all &quot; to " character
+            const api_data_text = await (await response.text()).replaceAll('&quot;', '"');
+            let api_json = JSON.parse(api_data_text);
+            // Finally saving api data to state
+            this.setState({ data: api_json });
+            data = api_json;
+            // console.log(this.state.data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    componentDidMount() {
+        // getting API function
+        this.getApiTests();
+    }
+    // API request end...
+
     incrementProgressVal = () => {
-        if(this.state.progressVal < data.length) {
+        if(this.state.progressVal < this.state.data.length) {
             this.setState({
                 progressVal: this.state.progressVal + 1
             });
@@ -201,7 +177,7 @@ export default class VideoTests extends React.Component {
         // Посмотреть какой номер у ответа
         // и в зависимости от номера изменить
         // внутренний стейт
-        switch(choice.choiceIndex) {
+        switch(choice.choice_index) {
             case 0:
                 // Анимация бекграунда тачбл
                 Animated.sequence([
@@ -280,12 +256,16 @@ export default class VideoTests extends React.Component {
         // Пролистнуть страницу 
         // через полсекунды
         setTimeout(() => {
-            this.flatListRef.scrollToIndex({animated: true, index: index + 1 });
+            if(index + 1 == this.state.data.length) {
+                this.props.navigation.navigate('HomeTabs');
+            } else {
+                this.flatListRef.scrollToIndex({animated: true, index: index + 1 });
+            }
         }, 800);
     }
 
     loseCheck = (choice) => {
-        switch(choice.choiceIndex) {
+        switch(choice.choice_index) {
             case 0:
                 // Анимация тряски при
                 // неправильном ответе
@@ -408,38 +388,38 @@ export default class VideoTests extends React.Component {
         // бекграунд ЗЕЛЕНОГО цвета
         const backgroundColor = this.state.backAnim.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#7dee9e']
+            outputRange: ['#3c3a3f', '#7dee9e']
         });
         const backgroundColor2 = this.state.backAnim2.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#7dee9e']
+            outputRange: ['#3c3a3f', '#7dee9e']
         });
         const backgroundColor3 = this.state.backAnim3.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#7dee9e']
+            outputRange: ['#3c3a3f', '#7dee9e']
         });
         const backgroundColor4 = this.state.backAnim4.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#7dee9e']
+            outputRange: ['#3c3a3f', '#7dee9e']
         });
         // Константы анимации для 4-х
         // блоков ответа
         // бекграунд КРАСНОГО цвета
         const backgroundColorRed = this.state.backAnim.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#cd7180']
+            outputRange: ['#3c3a3f', '#cd7180']
         });
         const backgroundColorRed2 = this.state.backAnim2.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#cd7180']
+            outputRange: ['#3c3a3f', '#cd7180']
         });
         const backgroundColorRed3 = this.state.backAnim3.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#cd7180']
+            outputRange: ['#3c3a3f', '#cd7180']
         });
         const backgroundColorRed4 = this.state.backAnim4.interpolate({
             inputRange: [0, 1],
-            outputRange: ['#777', '#cd7180']
+            outputRange: ['#3c3a3f', '#cd7180']
         });
         // И для тряски
         const shakingZ = this.state.shakeAnimation.interpolate({
@@ -467,7 +447,7 @@ export default class VideoTests extends React.Component {
                 <Progress step={this.state.progressVal} steps={data.length} height={8} />
             </View>
                 <Animated.FlatList
-                    data={data}
+                    data={this.state.data}
                     onScroll={Animated.event([
                         {
                             nativeEvent: {
@@ -517,7 +497,7 @@ export default class VideoTests extends React.Component {
                                 </View>
                                 <View
                                     style={{
-                                        flex: 5,
+                                        flex: 6,
                                         marginBottom: 10,
                                     }}
                                 >
@@ -528,11 +508,11 @@ export default class VideoTests extends React.Component {
                                         <AnimatedButton
                                             activeOpacity={1} // Disable darken effect on click
                                             onPress={
-                                                item.serverChoice1.correct ? () => 
-                                                {this.winCheck(item.serverChoice1, index)} : () =>
-                                                {this.loseCheck(item.serverChoice1)} }
-                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice1.correct ? backgroundColor : backgroundColorRed }]}>
-                                            <Text style={styles.choiceField}>{item.serverChoice1.text}</Text>
+                                                item.server_choice_1.correct ? () => 
+                                                {this.winCheck(item.server_choice_1, index)} : () =>
+                                                {this.loseCheck(item.server_choice_1)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.server_choice_1.correct ? backgroundColor : backgroundColorRed }]}>
+                                            <Text style={styles.choiceField}>{item.server_choice_1.text}</Text>
                                         </AnimatedButton>
                                     </Animated.View>
 
@@ -543,11 +523,11 @@ export default class VideoTests extends React.Component {
                                         <AnimatedButton
                                             activeOpacity={1} // Disable darken effect on click
                                             onPress={
-                                                item.serverChoice2.correct ? () => 
-                                                {this.winCheck(item.serverChoice2, index)} : () =>
-                                                {this.loseCheck(item.serverChoice2)} }
-                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice2.correct ? backgroundColor2 : backgroundColorRed2 }]}>
-                                            <Text style={styles.choiceField}>{item.serverChoice2.text}</Text>
+                                                item.server_choice_2.correct ? () => 
+                                                {this.winCheck(item.server_choice_2, index)} : () =>
+                                                {this.loseCheck(item.server_choice_2)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.server_choice_2.correct ? backgroundColor2 : backgroundColorRed2 }]}>
+                                            <Text style={styles.choiceField}>{item.server_choice_2.text}</Text>
                                         </AnimatedButton>
                                     </Animated.View>
 
@@ -558,11 +538,11 @@ export default class VideoTests extends React.Component {
                                         <AnimatedButton
                                             activeOpacity={1} // Disable darken effect on click
                                             onPress={
-                                                item.serverChoice3.correct ? () => 
-                                                {this.winCheck(item.serverChoice3, index)} : () =>
-                                                {this.loseCheck(item.serverChoice3)} }
-                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice3.correct ? backgroundColor3 : backgroundColorRed3 }]}>
-                                            <Text style={styles.choiceField}>{item.serverChoice3.text}</Text>
+                                                item.server_choice_3.correct ? () => 
+                                                {this.winCheck(item.server_choice_3, index)} : () =>
+                                                {this.loseCheck(item.server_choice_3)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.server_choice_3.correct ? backgroundColor3 : backgroundColorRed3 }]}>
+                                            <Text style={styles.choiceField}>{item.server_choice_3.text}</Text>
                                         </AnimatedButton>
                                     </Animated.View>
 
@@ -573,11 +553,11 @@ export default class VideoTests extends React.Component {
                                         <AnimatedButton
                                             activeOpacity={1} // Disable darken effect on click
                                             onPress={
-                                                item.serverChoice4.correct ? () => 
-                                                {this.winCheck(item.serverChoice4, index)} : () =>
-                                                {this.loseCheck(item.serverChoice4)} }
-                                            style={[styles.choiceTouchable, { backgroundColor: item.serverChoice4.correct ? backgroundColor4 : backgroundColorRed4 }]}>
-                                            <Text style={styles.choiceField}>{item.serverChoice4.text}</Text>
+                                                item.server_choice_4.correct ? () => 
+                                                {this.winCheck(item.server_choice_4, index)} : () =>
+                                                {this.loseCheck(item.server_choice_4)} }
+                                            style={[styles.choiceTouchable, { backgroundColor: item.server_choice_4.correct ? backgroundColor4 : backgroundColorRed4 }]}>
+                                            <Text style={styles.choiceField}>{item.server_choice_4.text}</Text>
                                         </AnimatedButton>
                                     </Animated.View>
 
@@ -655,7 +635,7 @@ const VideoComponent = ({ item }) => {
                   }}
             >
                 <Video
-                    source={{ uri: item.image }}
+                    source={{ uri: "https://grina.paksol.ru/backend/media/" + item.source }}
                     rate={1.0}
                     volume={1.0}
                     muted={false}
@@ -704,7 +684,7 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     choiceFieldContainer: {
-        flex: 1,
+        marginBottom: 10,
         alignItems: 'center',
         justifyContent: 'center',
     },
