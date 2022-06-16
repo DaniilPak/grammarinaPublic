@@ -18,14 +18,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Icons
-import IconEntypo from 'react-native-vector-icons/Entypo';
-import IconFontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Navigation bottom Screens 
-import DetailsScreen from './DetailsScreen';
+import WordsScreen from './Words';
 import SettingsScreen from './SettingsScreen';
-import CheckerScreen from './CheckerScreen';
+import ProgressScreen from './Progress';
 
 // Video modules
 import VideoCards from './carousel/VideoCards';
@@ -55,12 +53,12 @@ const GRAYBLUE = '#3f4b59';
 const MyTheme = {
     dark: true,
     colors: {
-      primary: 'rgb(255, 255, 255)',
-      background: 'rgb(255, 255, 255)', // White
-      card: 'rgb(0, 0, 0)', // Black
-      text: 'rgb(255, 255, 255)',
-      border: 'rgb(255, 255, 255)',
-      notification: 'rgb(255, 255, 255)',
+      primary: 'rgb(255, 255, 255)', // Active screen color 
+      background: 'rgb(255, 255, 255)', // Dont know what
+      card: 'rgba(43,39,35,255)', // Tab bar background color 
+      text: 'rgb(255, 255, 255)', // Inactive screen color
+      border: 'rgb(156,156,150)', // Top border color
+      notification: 'rgb(255, 255, 255)', // Dont know what
     },
 };
 
@@ -125,33 +123,33 @@ const Tab = createBottomTabNavigator();
 function HomeTabs(){
     return(
         <Tab.Navigator
-            initialRouteName={'Home'}
+            initialRouteName={'Видеокурсы'}
             screenOptions={({ route }) => ({
+                tabBarStyle: { height: 70, paddingBottom: 10, paddingTop: 10 }, // Custom tabbar settings padding and height
                 tabBarIcon: ({ focused }) => {
                     let iconColor;
                     let rn = route.name;
 
-                    if (rn === 'Home') {
+                    if (rn === 'Видеокурсы') {
                         iconColor = focused ? 'white' : '#999';
-                        return <IconFontAwesome5 name="graduation-cap" size={30} color={iconColor} />
-                    } else if (rn === 'Details') {
+                        return <Ionicons name="easel-outline" size={30} color={iconColor} />
+                    } else if (rn === 'Слова и фразы') {
                         iconColor = focused ? 'white' : '#999';
-                        return <Ionicons name='search' size={30} color={iconColor} />
-                    } else if (rn === 'Checker') {
+                        return <Ionicons name="bulb-outline" size={30} color={iconColor} />
+                    } else if (rn === 'Прогресс') {
                         iconColor = focused ? 'white' : '#999';
-                        return <Ionicons name="albums-sharp" size={30} color={iconColor} />
-                    } else if (rn === 'Settings') {
+                        return <Ionicons name="calendar-sharp" size={30} color={iconColor} />
+                    } else if (rn === 'Настройки') {
                         iconColor = focused ? 'white' : '#999';
-                        return <Ionicons name="person" size={30} color={iconColor} />
+                        return <Ionicons name="settings-outline" size={30} color={iconColor} />
                     }
-                    
                 }
             })}
         >
-            <Tab.Screen name={'Home'} component={InitialScreen} options={{header: () => null}} />
-            <Tab.Screen name={'Checker'} component={CheckerScreen} options={{header: () => null}} />
-            <Tab.Screen name={'Details'} component={DetailsScreen} options={{header: () => null}} />
-            <Tab.Screen name={'Settings'} component={SettingsScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Видеокурсы'} component={InitialScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Слова и фразы'} component={WordsScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Прогресс'} component={ProgressScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Настройки'} component={SettingsScreen} options={{header: () => null}} />
         </Tab.Navigator>
     );
 }
@@ -365,7 +363,7 @@ class InitialScreen extends React.Component {
         }
 
         return (
-            <View style={{ flex: 1, backgroundColor: '#000' }}>
+            <View style={{ flex: 1, backgroundColor: '#2b2723' }}>
                 {/* style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }} */}
                 <View>
 
@@ -536,7 +534,9 @@ function MainContainer({ navigation }) {
                             <Stack.Screen 
                                 name="Play"
                                 component={PlayScreen}
-                                options={{ header: () => null }} // Makes header disappear: header: () => null,
+                                options={{ header: () => null,
+                                    animation: "slide_from_right",
+                                }} // Makes header disappear: header: () => null,
                             />
                         </>
                     )}
