@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { 
     View,
@@ -21,7 +20,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // Navigation bottom Screens 
-import WordsScreen from './Words';
 import SettingsScreen from './SettingsScreen';
 import ProgressScreen from './Progress';
 
@@ -40,6 +38,9 @@ import * as Reanimated from 'react-native-reanimated';
 // Local secure storage
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Words components 
+import MainWordsScreen from './Words';
+
 // ### CONSTANTS ### 
 
 // Width and Height of the screen
@@ -49,13 +50,21 @@ const { widthDevice, heightDevice } = Dimensions.get('screen');
 const OCEANBLUE = '#00b1fd';
 const GRAYBLUE = '#3f4b59';
 
+// Entire App color
+// Edit this value means changing the main App color
+const interfaceColor = '#2b2723';
+
+// For button's width 
+const { width, height } = Dimensions.get('screen');
+const buttonWidth = width * 0.8;
+
 // Bottom navigator colors
 const MyTheme = {
     dark: true,
     colors: {
       primary: 'rgb(255, 255, 255)', // Active screen color 
       background: 'rgb(255, 255, 255)', // Dont know what
-      card: 'rgba(43,39,35,255)', // Tab bar background color 
+      card: interfaceColor, // Tab bar background color 
       text: 'rgb(255, 255, 255)', // Inactive screen color
       border: 'rgb(156,156,150)', // Top border color
       notification: 'rgb(255, 255, 255)', // Dont know what
@@ -147,7 +156,7 @@ function HomeTabs(){
             })}
         >
             <Tab.Screen name={'Видеокурсы'} component={InitialScreen} options={{header: () => null}} />
-            <Tab.Screen name={'Слова и фразы'} component={WordsScreen} options={{header: () => null}} />
+            <Tab.Screen name={'Слова и фразы'} component={MainWordsScreen} options={{header: () => null}} />
             <Tab.Screen name={'Прогресс'} component={ProgressScreen} options={{header: () => null}} />
             <Tab.Screen name={'Настройки'} component={SettingsScreen} options={{header: () => null}} />
         </Tab.Navigator>
@@ -363,7 +372,7 @@ class InitialScreen extends React.Component {
         }
 
         return (
-            <View style={{ flex: 1, backgroundColor: '#2b2723' }}>
+            <View style={{ flex: 1, backgroundColor: interfaceColor }}>
                 {/* style={{ paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }} */}
                 <View>
 
@@ -424,6 +433,55 @@ function PlayScreen({ route }) {
     );
 
 };
+
+
+// Words Or Phrase
+function WordOrPhrase({ route, navigation }) {
+    return (
+        <View style={{ 
+            flex: 1,
+            backgroundColor: interfaceColor,
+            alignItems: 'center'
+        }}>
+            <TouchableOpacity 
+                style={{ position: 'absolute', left: 20, top: 15 }}
+                onPress={ () => { navigation.navigate('HomeTabs', { screen: 'Слова и фразы' })}}
+            >
+                <Ionicons name='close' size={40} color={'#eee'} />
+            </TouchableOpacity>
+            {/* Letters */}
+            <View style={{ 
+                    flex: 1.5,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                }}>
+                <Image source={{ uri: 'https://paksol.ru/gramma/bulb.png' }} style={{ width: 125, height: 125 }} />
+                <View style={{ height: 10 }}></View>
+                <Text style={{ fontSize: 30, textAlign: 'center', color: 'white' }}>Что хочешь учить?</Text>
+                <View style={{ height: 10 }}></View>
+                <Text style={{ fontSize: 20, textAlign: 'center', color: 'white' }}>Можно учить слова или полноценные фразы и обороты</Text>
+            </View>
+            {/* Choose Words or Phrase buttons containter */}
+            <View style={{ flex: 0.5 }}>
+                {/* Choose Words */}
+                <TouchableOpacity activeOpacity={1}>
+                    <View style={styles.chooseButton}>
+                        <Text style={{ color: 'white', fontSize: 25 }}>Слова</Text>
+                    </View>
+                </TouchableOpacity>
+                {/* Space between buttons */}
+                <View style={{ height: 15 }}></View> 
+                {/* Choose Phrase */}
+                <TouchableOpacity activeOpacity={1}>
+                    <View style={styles.chooseButton}>
+                        <Text style={{ color: 'white', fontSize: 25 }}>Фразы</Text>
+                    </View>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+}
 
 
 
@@ -538,6 +596,13 @@ function MainContainer({ navigation }) {
                                     animation: "slide_from_right",
                                 }} // Makes header disappear: header: () => null,
                             />
+                            <Stack.Screen 
+                                name="WordOrPhrase"
+                                component={WordOrPhrase}
+                                options={{ header: () => null,
+                                    animation: "slide_from_right",
+                                }} // Makes header disappear: header: () => null,
+                            />
                         </>
                     )}
                 </Stack.Navigator>
@@ -618,6 +683,14 @@ const styles = StyleSheet.create({
         right: 101,
         top: -15,
     },
+    chooseButton: {
+        backgroundColor: '#05b919',
+        width: buttonWidth,
+        height: 70,
+        borderRadius: 50, 
+        alignItems: 'center',
+        justifyContent: 'center',
+    }
 });
 
 export default MainContainer;
