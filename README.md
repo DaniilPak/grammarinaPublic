@@ -92,7 +92,18 @@ npm i react-native-secure-storage
 
 For Google Authentication:
 
+### this part is skipped 
 
+
+IOS changes:
+
+npm audit fix
+
+cd ios + pod install
+
+react-native unlink react-native-linear-gradient
+react-native unlink react-native-vector-icons
+- because of autolinking problems
 
 
 

@@ -8,6 +8,7 @@ import * as Reanimated from 'react-native-reanimated';
 
 // Icons
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+MaterialCommunityIcons.loadFont();
 
 // Bottom tab, and basic navigations
 import { NavigationContainer } from '@react-navigation/native';

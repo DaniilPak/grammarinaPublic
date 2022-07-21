@@ -18,6 +18,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 // Icons
 import Ionicons from 'react-native-vector-icons/Ionicons';
+Ionicons.loadFont();
 
 // Navigation bottom Screens 
 import SettingsScreen from './SettingsScreen';
